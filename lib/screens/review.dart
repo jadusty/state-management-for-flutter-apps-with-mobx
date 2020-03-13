@@ -11,9 +11,10 @@ class Review extends StatefulWidget {
     return new ReviewState();
   }
 }
+
 class ReviewState extends State<Review> {
   final Reviews _reviewsStore = Reviews();
-  final TextEditingController _commentController = TextEditingController();  
+  final TextEditingController _commentController = TextEditingController();
   final List<int> _stars = [1, 2, 3, 4, 5];
   int _selectedStar;
   @override
@@ -22,6 +23,7 @@ class ReviewState extends State<Review> {
     _reviewsStore.initReviews();
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
@@ -107,11 +109,10 @@ class ReviewState extends State<Review> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     InfoCard(
-                      infoValue: _reviewsStore.numberOfReviews.toString(),
-                      infoLabel: "reviews",
-                      cardColor: Colors.green,
-                      iconData: Icons.comment
-                    ),
+                        infoValue: _reviewsStore.numberOfReviews.toString(),
+                        infoLabel: "reviews",
+                        cardColor: Colors.green,
+                        iconData: Icons.comment),
                     InfoCard(
                       infoValue: _reviewsStore.averageStars.toStringAsFixed(2),
                       infoLabel: "average stars",
@@ -145,14 +146,13 @@ class ReviewState extends State<Review> {
               child: Container(
                 child: Observer(
                   builder: (_) => _reviewsStore.reviews.isNotEmpty
-                      ? ListView(
-                          children:
-                              _reviewsStore.reviews.reversed.map((reviewItem) {
+                      ? new ListView.builder(
+                          itemCount: _reviewsStore.reviews.length,
+                          itemBuilder: (BuildContext ctxt, int index) {
                             return ReviewWidget(
-                              reviewItem: reviewItem,
+                              reviewItem: _reviewsStore.reviews[index],
                             );
-                          }).toList(),
-                        )
+                          })
                       : Text("No reviews yet"),
                 ),
               ),
