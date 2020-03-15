@@ -26,6 +26,7 @@ class ReviewState extends State<Review> {
 
   @override
   Widget build(BuildContext context) {
+    bool isIos = Theme.of(context).platform == TargetPlatform.iOS;
     Size screenSize = MediaQuery.of(context).size;
     double screenWidth = screenSize.width;
     return Scaffold(
@@ -149,8 +150,24 @@ class ReviewState extends State<Review> {
                       ? new ListView.builder(
                           itemCount: _reviewsStore.reviews.length,
                           itemBuilder: (BuildContext ctxt, int index) {
-                            return ReviewWidget(
-                              reviewItem: _reviewsStore.reviews[index],
+                            final thisReview = _reviewsStore.reviews[index];
+                            return GestureDetector (
+                              child: Dismissible(
+                                key: Key(thisReview.uniqueKey),
+                                direction: DismissDirection.horizontal,
+                                child: ReviewWidget(
+                                  reviewItem: thisReview,
+                                ),
+                                onDismissed: (direction) {
+                                  if (direction == DismissDirection.endToStart || direction == DismissDirection.startToEnd) {
+                                    _reviewsStore.removeReview(thisReview.uniqueKey);
+                                  }
+                                },
+                              ),
+                              onLongPress: () {
+                                  // you can show an AlertDialog here with 3 options you need
+                                  print("long press $index");
+                              },
                             );
                           })
                       : Text("No reviews yet"),
