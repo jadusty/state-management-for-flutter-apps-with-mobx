@@ -38,11 +38,26 @@ abstract class ReviewsBase with Store {
         totalStars += review.stars;
       }
     });
-    averageStars = totalStars / reviews.length;
+    var avg = totalStars / reviews.length;
+    averageStars = avg.isNaN ? 0.0 : avg;
+  }
+
+  @action
+  void removeReview(String uniqueKey) {
+    var thisModel = reviews.where((element) => element.uniqueKey == uniqueKey).first;
+    //to update list of reviews
+    reviews.removeWhere((element) => element.uniqueKey == uniqueKey);
+    // to update the average number of stars
+    averageStars = _calculateAverageStars(thisModel.stars * -1);
+    // to update the total number of stars
+    totalStars += thisModel.stars * -1;
+    // to store the reviews using Shared Preferences
+    _persistReview(reviews);
   }
 
   double _calculateAverageStars(int newStars) {
-    return (newStars + totalStars) / numberOfReviews;
+    var avg = (newStars + totalStars) / numberOfReviews; 
+    return avg.isNaN ? 0.0 : avg;
   }
 
   void _persistReview(List<ReviewModel> updatedReviews) async {

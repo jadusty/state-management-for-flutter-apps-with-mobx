@@ -1,8 +1,11 @@
 import 'package:meta/meta.dart';
+import 'package:uuid/uuid.dart';
+
 class ReviewModel {
+  final String uniqueKey = Uuid().v1();
   final String comment;
   final int stars;
-  const ReviewModel({@required this.comment, @required this.stars});
+  ReviewModel({@required this.comment, @required this.stars});
 
   factory ReviewModel.fromJson(Map<String, dynamic> parsedJson) {
     return ReviewModel(
