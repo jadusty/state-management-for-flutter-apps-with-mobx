@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:reviewapp/widgets/reviewmod.dart';
 import '../widgets/info_card.dart';
 import '../models/reviews.dart';
 import '../models/reviewmodel.dart';
@@ -151,7 +152,7 @@ class ReviewState extends State<Review> {
                           itemCount: _reviewsStore.reviews.length,
                           itemBuilder: (BuildContext ctxt, int index) {
                             final thisReview = _reviewsStore.reviews[index];
-                            return GestureDetector (
+                            return GestureDetector(
                               child: Dismissible(
                                 key: Key(thisReview.uniqueKey),
                                 direction: DismissDirection.horizontal,
@@ -159,14 +160,22 @@ class ReviewState extends State<Review> {
                                   reviewItem: thisReview,
                                 ),
                                 onDismissed: (direction) {
-                                  if (direction == DismissDirection.endToStart || direction == DismissDirection.startToEnd) {
-                                    _reviewsStore.removeReview(thisReview.uniqueKey);
+                                  if (direction ==
+                                          DismissDirection.endToStart ||
+                                      direction ==
+                                          DismissDirection.startToEnd) {
+                                    _reviewsStore
+                                        .removeReview(thisReview.uniqueKey);
                                   }
                                 },
                               ),
                               onLongPress: () {
-                                  // you can show an AlertDialog here with 3 options you need
-                                  print("long press $index");
+                                // you can show an AlertDialog here with 3 options you need
+                                showModalBottomSheet(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return ReviewMod();
+                                    });
                               },
                             );
                           })
