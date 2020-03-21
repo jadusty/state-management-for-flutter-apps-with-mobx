@@ -25,6 +25,12 @@ class ReviewState extends State<Review> {
     super.initState();
   }
 
+  void _submitReview(String uniqueKey, ReviewModel review) {
+    //_reviewsStore.updateReview(reviewModel)
+    print("$uniqueKey $review.comment $review.rating");
+    _reviewsStore.updateReview(review);
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isIos = Theme.of(context).platform == TargetPlatform.iOS;
@@ -152,31 +158,40 @@ class ReviewState extends State<Review> {
                           itemCount: _reviewsStore.reviews.length,
                           itemBuilder: (BuildContext ctxt, int index) {
                             final thisReview = _reviewsStore.reviews[index];
-                            return GestureDetector(
-                              child: Dismissible(
-                                key: Key(thisReview.uniqueKey),
-                                direction: DismissDirection.horizontal,
-                                child: ReviewWidget(
-                                  reviewItem: thisReview,
+                            return WillPopScope( // TODO: not sure what the effect of this is at present
+                              onWillPop: () async =>
+                                  false, //prevents Android back button and outside tap from popping it
+                              child: GestureDetector(
+                                child: Dismissible(
+                                  key: Key(thisReview.uniqueKey),
+                                  direction: DismissDirection.horizontal,
+                                  child: ReviewWidget(
+                                    reviewItem: thisReview,
+                                  ),
+                                  onDismissed: (direction) {
+                                    if (direction ==
+                                            DismissDirection.endToStart ||
+                                        direction ==
+                                            DismissDirection.startToEnd) {
+                                      _reviewsStore
+                                          .removeReview(thisReview.uniqueKey);
+                                    }
+                                  },
                                 ),
-                                onDismissed: (direction) {
-                                  if (direction ==
-                                          DismissDirection.endToStart ||
-                                      direction ==
-                                          DismissDirection.startToEnd) {
-                                    _reviewsStore
-                                        .removeReview(thisReview.uniqueKey);
-                                  }
+                                onLongPress: () {
+                                  // you can show an AlertDialog here with 3 options you need
+                                  var bottomSheetController =
+                                      showModalBottomSheet(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return ReviewMod(
+                                                _submitReview, thisReview);
+                                          });
+                                  bottomSheetController
+                                      .whenComplete(() => null)
+                                      .then((value) {});
                                 },
                               ),
-                              onLongPress: () {
-                                // you can show an AlertDialog here with 3 options you need
-                                showModalBottomSheet(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return ReviewMod();
-                                    });
-                              },
                             );
                           })
                       : Text("No reviews yet"),

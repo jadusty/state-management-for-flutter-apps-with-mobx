@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import './starrating.dart';
 import '../models/reviewmodel.dart';
 
 class ReviewWidget extends StatelessWidget {
@@ -20,11 +21,13 @@ class ReviewWidget extends StatelessWidget {
                   reviewItem.comment,
                 ),
               ),
-              Row(
-                children: List(reviewItem.stars).map((listItem) {
-                  return Icon(Icons.star);
-                }).toList(),
-              ),
+              StarRating(
+                  value: reviewItem.stars,
+                  size: 20.0,
+                  iconsOnly: true,
+                  onChanged: (index) {
+                    return index;
+                  })
             ],
           ),
         ),

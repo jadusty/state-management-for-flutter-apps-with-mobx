@@ -6,26 +6,34 @@ import './reviewmodel.dart';
 part 'reviews.g.dart';
 
 class Reviews = ReviewsBase with _$Reviews;
+
 abstract class ReviewsBase with Store {
   @observable
   ObservableList<ReviewModel> reviews = ObservableList.of([]);
 
-  @observable
-  double averageStars = 0;
+  @computed
+  double get averageStars {
+    return totalStars / numberOfReviews;
+  }
 
   @computed
   int get numberOfReviews => reviews.length;
 
-  int totalStars = 0;
+  @computed
+  int get totalStars {
+    //return reviews.reduce((x, y) => x.stars + y.stars)
+    int value = reviews.first.stars;
+    reviews.skip(1).forEach((element) {
+      value = value + element.stars;
+    });
+    return value;
+  }
 
   @action
   void addReview(ReviewModel newReview) {
     //to update list of reviews
     reviews.add(newReview);
-    // to update the average number of stars
-    averageStars = _calculateAverageStars(newReview.stars);
-    // to update the total number of stars
-    totalStars += newReview.stars;
+
     // to store the reviews using Shared Preferences
     _persistReview(reviews);
   }
@@ -34,30 +42,31 @@ abstract class ReviewsBase with Store {
   Future<void> initReviews() async {
     await _getReviews().then((onValue) {
       reviews = ObservableList.of(onValue);
-      for (ReviewModel review in reviews) {
-        totalStars += review.stars;
-      }
     });
-    var avg = totalStars / reviews.length;
-    averageStars = avg.isNaN ? 0.0 : avg;
   }
 
   @action
   void removeReview(String uniqueKey) {
-    var thisModel = reviews.where((element) => element.uniqueKey == uniqueKey).first;
+    var thisModel =
+        reviews.where((element) => element.uniqueKey == uniqueKey).first;
     //to update list of reviews
     reviews.removeWhere((element) => element.uniqueKey == uniqueKey);
-    // to update the average number of stars
-    averageStars = _calculateAverageStars(thisModel.stars * -1);
-    // to update the total number of stars
-    totalStars += thisModel.stars * -1;
+ 
     // to store the reviews using Shared Preferences
     _persistReview(reviews);
   }
 
-  double _calculateAverageStars(int newStars) {
-    var avg = (newStars + totalStars) / numberOfReviews; 
-    return avg.isNaN ? 0.0 : avg;
+  @action
+  void updateReview(ReviewModel reviewModel) {
+    var index = reviews
+        .indexWhere((element) => element.uniqueKey == reviewModel.uniqueKey);
+    if (index != -1) {
+      int currentStars = reviews[index].stars;
+      //to update list of reviews
+      reviews[index] = reviewModel;
+      // to store the reviews using Shared Preferences
+      _persistReview(reviews);
+    }
   }
 
   void _persistReview(List<ReviewModel> updatedReviews) async {
@@ -70,7 +79,7 @@ abstract class ReviewsBase with Store {
     }
     _preferences.setStringList('userReviews', reviewsStringList);
   }
-  
+
   Future<List<ReviewModel>> _getReviews() async {
     final SharedPreferences _preferences =
         await SharedPreferences.getInstance();

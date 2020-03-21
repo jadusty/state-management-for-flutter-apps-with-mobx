@@ -9,12 +9,23 @@ part of 'reviews.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic
 
 mixin _$Reviews on ReviewsBase, Store {
+  Computed<double> _$averageStarsComputed;
+
+  @override
+  double get averageStars =>
+      (_$averageStarsComputed ??= Computed<double>(() => super.averageStars))
+          .value;
   Computed<int> _$numberOfReviewsComputed;
 
   @override
   int get numberOfReviews =>
       (_$numberOfReviewsComputed ??= Computed<int>(() => super.numberOfReviews))
           .value;
+  Computed<int> _$totalStarsComputed;
+
+  @override
+  int get totalStars =>
+      (_$totalStarsComputed ??= Computed<int>(() => super.totalStars)).value;
 
   final _$reviewsAtom = Atom(name: 'ReviewsBase.reviews');
 
@@ -33,23 +44,6 @@ mixin _$Reviews on ReviewsBase, Store {
     }, _$reviewsAtom, name: '${_$reviewsAtom.name}_set');
   }
 
-  final _$averageStarsAtom = Atom(name: 'ReviewsBase.averageStars');
-
-  @override
-  double get averageStars {
-    _$averageStarsAtom.context.enforceReadPolicy(_$averageStarsAtom);
-    _$averageStarsAtom.reportObserved();
-    return super.averageStars;
-  }
-
-  @override
-  set averageStars(double value) {
-    _$averageStarsAtom.context.conditionallyRunInAction(() {
-      super.averageStars = value;
-      _$averageStarsAtom.reportChanged();
-    }, _$averageStarsAtom, name: '${_$averageStarsAtom.name}_set');
-  }
-
   final _$initReviewsAsyncAction = AsyncAction('initReviews');
 
   @override
@@ -64,6 +58,26 @@ mixin _$Reviews on ReviewsBase, Store {
     final _$actionInfo = _$ReviewsBaseActionController.startAction();
     try {
       return super.addReview(newReview);
+    } finally {
+      _$ReviewsBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void removeReview(String uniqueKey) {
+    final _$actionInfo = _$ReviewsBaseActionController.startAction();
+    try {
+      return super.removeReview(uniqueKey);
+    } finally {
+      _$ReviewsBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void updateReview(ReviewModel reviewModel) {
+    final _$actionInfo = _$ReviewsBaseActionController.startAction();
+    try {
+      return super.updateReview(reviewModel);
     } finally {
       _$ReviewsBaseActionController.endAction(_$actionInfo);
     }
