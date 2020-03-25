@@ -13,7 +13,7 @@ abstract class ReviewsBase with Store {
 
   @computed
   double get averageStars {
-    return totalStars / numberOfReviews;
+    return numberOfReviews > 0 ? totalStars / numberOfReviews : 0;
   }
 
   @computed
@@ -47,8 +47,8 @@ abstract class ReviewsBase with Store {
 
   @action
   void removeReview(String uniqueKey) {
-    var thisModel =
-        reviews.where((element) => element.uniqueKey == uniqueKey).first;
+    //var thisModel =
+        //reviews.where((element) => element.uniqueKey == uniqueKey).first;
     //to update list of reviews
     reviews.removeWhere((element) => element.uniqueKey == uniqueKey);
  
@@ -61,7 +61,7 @@ abstract class ReviewsBase with Store {
     var index = reviews
         .indexWhere((element) => element.uniqueKey == reviewModel.uniqueKey);
     if (index != -1) {
-      int currentStars = reviews[index].stars;
+      //int currentStars = reviews[index].stars;
       //to update list of reviews
       reviews[index] = reviewModel;
       // to store the reviews using Shared Preferences
