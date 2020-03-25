@@ -182,6 +182,8 @@ class ReviewState extends State<Review> {
                                   // you can show an AlertDialog here with 3 options you need
                                   var bottomSheetController =
                                       showModalBottomSheet(
+                                          // If your BottomSheetModel is Column make sure you add mainAxisSize: MainAxisSize.min, otherwise the sheet will cover the whole screen.
+                                          isScrollControlled: true, // allow for keyboard
                                           context: context,
                                           builder: (BuildContext context) {
                                             return ReviewMod(

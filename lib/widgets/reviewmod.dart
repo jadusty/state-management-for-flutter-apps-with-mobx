@@ -9,8 +9,8 @@ class ReviewMod extends StatefulWidget {
   ReviewMod(this.submitRating, this.review, {Key key}) : super(key: key);
 
   @override
-  ReviewModState createState() =>
-      ReviewModState(this.review.uniqueKey, this.review.comment, this.review.stars);
+  ReviewModState createState() => ReviewModState(
+      this.review.uniqueKey, this.review.comment, this.review.stars);
 }
 
 class ReviewModState extends State<ReviewMod> {
@@ -35,7 +35,8 @@ class ReviewModState extends State<ReviewMod> {
     if (_commentController.text.isEmpty) {
       return;
     }
-    var thisReview = new ReviewModel.ofUnique(uniqueKey: uniqueKey, comment: comment, stars: rating);
+    var thisReview = new ReviewModel.ofUnique(
+        uniqueKey: uniqueKey, comment: comment, stars: rating);
     widget.submitRating(widget.review.uniqueKey, thisReview);
     Navigator.of(context).pop(rating);
   }
@@ -46,61 +47,61 @@ class ReviewModState extends State<ReviewMod> {
 
   @override
   Widget build(BuildContext context) {
-
     _commentController.addListener(_changeComment);
 
-    return Scaffold(
-      resizeToAvoidBottomInset: true, // TODO: Make space for virtual keyboard (not quite working)
-      body: 
-          Container(
-          margin: const EdgeInsets.only(top: 5, left: 15, right: 15),
-          height: 250,
-          child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                  StarRating(
-                    onChanged: (index) {
-                      setState(() {
-                        rating = index;
-                      });
-                    },
-                    value: rating,
-                  ),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Comment'),
-                    controller: _commentController,
-                    keyboardType: TextInputType.text,
-                    onChanged: (comment) {
-                      setState(() {
-                        comment = comment;
-                      });
-                    },
-                    //onSubmitted: (_) => _submitRating(),
-                  ),
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        new FlatButton(
-                          textColor: Colors.blue,
-                          child: Text("CANCEL"),
-                          onPressed: () {
-                            Navigator.of(context).pop(rating);
+    return Container(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+                20.0, 20.0, 20.0, 0.0), // content padding
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        StarRating(
+                          onChanged: (index) {
+                            setState(() {
+                              rating = index;
+                            });
                           },
+                          value: rating,
                         ),
-                        new FlatButton(
-                          textColor: Colors.blue,
-                          child: Text("OK"),
-                          onPressed: () {
-                            _submitRating();
+                        TextField(
+                          decoration: InputDecoration(labelText: 'Comment'),
+                          controller: _commentController,
+                          keyboardType: TextInputType.text,
+                          onChanged: (comment) {
+                            setState(() {
+                              comment = comment;
+                            });
                           },
-                        )
+                          //onSubmitted: (_) => _submitRating(),
+                        ),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: <Widget>[
+                              new FlatButton(
+                                textColor: Colors.blue,
+                                child: Text("CANCEL"),
+                                onPressed: () {
+                                  Navigator.of(context).pop(rating);
+                                },
+                              ),
+                              new FlatButton(
+                                textColor: Colors.blue,
+                                child: Text("OK"),
+                                onPressed: () {
+                                  _submitRating();
+                                },
+                              )
+                            ])
                       ])
-                ])
-              ])),
-    );
+                ])));
   }
 }
