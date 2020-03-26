@@ -15,100 +15,33 @@ class Review extends StatefulWidget {
 
 class ReviewState extends State<Review> {
   final Reviews _reviewsStore = Reviews();
-  final TextEditingController _commentController = TextEditingController();
-  final List<int> _stars = [1, 2, 3, 4, 5];
-  int _selectedStar;
   @override
   void initState() {
-    _selectedStar = null;
     _reviewsStore.initReviews();
     super.initState();
   }
 
   void _submitReview(String uniqueKey, ReviewModel review) {
     //_reviewsStore.updateReview(reviewModel)
-    print("$uniqueKey $review.comment $review.rating");
     _reviewsStore.updateReview(review);
+  }
+
+  void _addReview(String uniqueKey, ReviewModel review) {
+    //_reviewsStore.updateReview(reviewModel)
+    _reviewsStore.addReview(review);
   }
 
   @override
   Widget build(BuildContext context) {
-    bool isIos = Theme.of(context).platform == TargetPlatform.iOS;
-    Size screenSize = MediaQuery.of(context).size;
-    double screenWidth = screenSize.width;
     return Scaffold(
       appBar: AppBar(
         title: Text('Review App'),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            SizedBox(height: 12.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                Container(
-                  width: screenWidth * 0.6,
-                  child: TextField(
-                    controller: _commentController,
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.all(10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      hintText: "Write a review",
-                      labelText: "Write a review",
-                    ),
-                  ),
-                ),
-                Container(
-                  child: DropdownButton(
-                    hint: Text("Stars"),
-                    elevation: 0,
-                    value: _selectedStar,
-                    items: _stars.map((star) {
-                      return DropdownMenuItem<int>(
-                        child: Text(star.toString()),
-                        value: star,
-                      );
-                    }).toList(),
-                    onChanged: (item) {
-                      setState(() {
-                        _selectedStar = item;
-                      });
-                    },
-                  ),
-                ),
-                Container(
-                  child: Builder(
-                    builder: (BuildContext context) {
-                      return IconButton(
-                        icon: Icon(Icons.done),
-                        onPressed: () {
-                          if (_selectedStar == null) {
-                            Scaffold.of(context).showSnackBar(SnackBar(
-                              content:
-                                  Text("You can't add a review without star"),
-                              duration: Duration(milliseconds: 500),
-                            ));
-                          } else if (_commentController.text.isEmpty) {
-                            Scaffold.of(context).showSnackBar(SnackBar(
-                              content: Text("Review comment cannot be empty"),
-                              duration: Duration(milliseconds: 500),
-                            ));
-                          } else {
-                            _reviewsStore.addReview(ReviewModel(
-                                comment: _commentController.text,
-                                stars: _selectedStar));
-                          }
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
             SizedBox(height: 12.0),
             //contains average stars and total reviews card
             Observer(
@@ -158,7 +91,8 @@ class ReviewState extends State<Review> {
                           itemCount: _reviewsStore.reviews.length,
                           itemBuilder: (BuildContext ctxt, int index) {
                             final thisReview = _reviewsStore.reviews[index];
-                            return WillPopScope( // TODO: not sure what the effect of this is at present
+                            return WillPopScope(
+                              // TODO: not sure what the effect of this is at present
                               onWillPop: () async =>
                                   false, //prevents Android back button and outside tap from popping it
                               child: GestureDetector(
@@ -183,7 +117,8 @@ class ReviewState extends State<Review> {
                                   var bottomSheetController =
                                       showModalBottomSheet(
                                           // If your BottomSheetModel is Column make sure you add mainAxisSize: MainAxisSize.min, otherwise the sheet will cover the whole screen.
-                                          isScrollControlled: true, // allow for keyboard
+                                          isScrollControlled:
+                                              true, // allow for keyboard
                                           context: context,
                                           builder: (BuildContext context) {
                                             return ReviewMod(
@@ -199,9 +134,25 @@ class ReviewState extends State<Review> {
                       : Text("No reviews yet"),
                 ),
               ),
-            )
+            ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(
+          Icons.add,
+        ),
+        onPressed: () {
+          var bottomSheetController = showModalBottomSheet(
+              // If your BottomSheetModel is Column make sure you add mainAxisSize: MainAxisSize.min, otherwise the sheet will cover the whole screen.
+              isScrollControlled: true, // allow for keyboard
+              context: context,
+              builder: (BuildContext context) {
+                return ReviewMod(
+                    _addReview, new ReviewModel(stars: 0, comment: ""));
+              });
+          bottomSheetController.whenComplete(() => null).then((value) {});
+        },
       ),
     );
   }
