@@ -12,17 +12,26 @@ abstract class ReviewsBase with Store {
   ObservableList<ReviewModel> reviews = ObservableList.of([]);
 
   @computed
-  double get averageStars {
-    return numberOfReviews > 0 ? totalStars / numberOfReviews : 0;
+  //Future<double> get averageStars async {
+  //  return await numberOfReviews > 0 ? await totalStars / await numberOfReviews : 0;
+  //}
+  double get averageStars  {
+    return numberOfReviews > 0 ? totalStars / numberOfReviews : 0.0;
   }
 
   @computed
-  int get numberOfReviews => reviews.length;
+  //Future<int> get numberOfReviews async { 
+  //  return reviews != null ? reviews?.length : 0; 
+  //}
+  int get numberOfReviews { 
+    return reviews != null ? reviews?.length : 0; 
+  }
 
   @computed
+  //Future<int> get totalStars async {
   int get totalStars {
     //return reviews.reduce((x, y) => x.stars + y.stars)
-    int value = reviews.first.stars;
+    int value = reviews.first?.stars;
     reviews.skip(1).forEach((element) {
       value = value + element.stars;
     });
