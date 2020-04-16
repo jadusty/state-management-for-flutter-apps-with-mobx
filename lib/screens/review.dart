@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:reviewapp/widgets/reviewmod.dart';
+
+import '../models/ui/fab/fabstate.dart';
+import '../widgets/reviewmod.dart';
 import '../widgets/info_card.dart';
 import '../models/reviews.dart';
 import '../models/reviewmodel.dart';
 import '../widgets/review.dart';
-import '../widgets/fade_on_scroll.dart';
 
 enum HeaderTypeEnum {
   HeaderTypeFull,
@@ -21,25 +25,47 @@ class Review extends StatefulWidget {
 
 class ReviewState extends State<Review> {
   final Reviews _reviewsStore = Reviews();
+  final FabState _fabState = new FabState();
+
+  ScrollDirection _lastScrollDirection = ScrollDirection.idle;
+
   @override
   initState() {
     _reviewsStore.initReviews();
+    _fabState.initFab();
     super.initState();
   }
 
   _submitReview(String uniqueKey, ReviewModel review) {
-    //_reviewsStore.updateReview(reviewModel)
     _reviewsStore.updateReview(review);
   }
 
   _addReview(String uniqueKey, ReviewModel review) {
-    //_reviewsStore.updateReview(reviewModel)
     _reviewsStore.addReview(review);
   }
 
   @override
   Widget build(BuildContext context) {
-    final ScrollController scrollController = new ScrollController();
+    ScrollController scrollController;
+    scrollController = new ScrollController()
+      ..addListener(() {
+        // Reduce the number of reactions by only changing state on change of scroll direction
+        if (scrollController.position.userScrollDirection != _lastScrollDirection) {
+          _fabState.setFab(scrollController.position.userScrollDirection == ScrollDirection.forward);
+          // We've reached the bottom extent so make sure the timer will be hit next time by forcing the scroll direction to be idle
+          _lastScrollDirection = scrollController.offset <= scrollController.position.maxScrollExtent
+            ? scrollController.position.userScrollDirection 
+            : ScrollDirection.idle;
+          // The next condition prevents some of the flicker of the fab at the maxScrollExtent position
+          if (scrollController.offset <= scrollController.position.maxScrollExtent) {
+            Timer timer = new Timer(new Duration(milliseconds: 1000), () {
+              _fabState.setFab(true);
+              _lastScrollDirection = ScrollDirection.idle;
+            });
+          }
+        }
+      });
+
     return Scaffold(
         appBar: AppBar(
           title: Text('Review App'),
@@ -63,22 +89,28 @@ class ReviewState extends State<Review> {
                             _reviewList(),
                           ]))
                     : _emptyReviewIndicator())),
-        floatingActionButton: FloatingActionButton(
-          child: Icon(
-            Icons.add,
-          ),
-          onPressed: () {
-            var bottomSheetController = showModalBottomSheet(
-                // If your BottomSheetModel is Column make sure you add mainAxisSize: MainAxisSize.min, otherwise the sheet will cover the whole screen.
-                isScrollControlled: true, // allow for keyboard
-                context: context,
-                builder: (BuildContext context) {
-                  return ReviewMod(
-                      _addReview, new ReviewModel(stars: 0, comment: ""));
-                });
-            bottomSheetController.whenComplete(() => null).then((value) {});
-          },
-        ));
+        floatingActionButton: Observer(
+           builder: (_) {
+            return _fabState.showFab == true
+            ? FloatingActionButton(
+                child: Icon(
+                  Icons.add,
+                ),
+                onPressed: () {
+                  var bottomSheetController = showModalBottomSheet(
+                      // If your BottomSheetModel is Column make sure you add mainAxisSize: MainAxisSize.min, otherwise the sheet will cover the whole screen.
+                      isScrollControlled: true, // allow for keyboard
+                      context: context,
+                      builder: (BuildContext context) {
+                        return ReviewMod(
+                            _addReview, new ReviewModel(stars: 0, comment: ""));
+                      });
+                  bottomSheetController
+                      .whenComplete(() => null)
+                      .then((value) {});
+                },
+              )
+            : Container();}));
   }
 
   _reviewList() {
