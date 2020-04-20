@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
+import '../models/ui/primitives/doublestate.dart';
 import '../models/ui/fab/fabstate.dart';
 import '../widgets/reviewmod.dart';
 import '../widgets/info_card.dart';
@@ -50,14 +51,18 @@ class ReviewState extends State<Review> {
     scrollController = new ScrollController()
       ..addListener(() {
         // Reduce the number of reactions by only changing state on change of scroll direction
-        if (scrollController.position.userScrollDirection != _lastScrollDirection) {
-          _fabState.setFab(scrollController.position.userScrollDirection == ScrollDirection.forward);
+        if (scrollController.position.userScrollDirection !=
+            _lastScrollDirection) {
+          _fabState.setFab(scrollController.position.userScrollDirection ==
+              ScrollDirection.forward);
           // We've reached the bottom extent so make sure the timer will be hit next time by forcing the scroll direction to be idle
-          _lastScrollDirection = scrollController.offset <= scrollController.position.maxScrollExtent
-            ? scrollController.position.userScrollDirection 
-            : ScrollDirection.idle;
+          _lastScrollDirection = scrollController.offset <=
+                  scrollController.position.maxScrollExtent
+              ? scrollController.position.userScrollDirection
+              : ScrollDirection.idle;
           // The next condition prevents some of the flicker of the fab at the maxScrollExtent position
-          if (scrollController.offset <= scrollController.position.maxScrollExtent) {
+          if (scrollController.offset <=
+              scrollController.position.maxScrollExtent) {
             Timer timer = new Timer(new Duration(milliseconds: 1000), () {
               _fabState.setFab(true);
               _lastScrollDirection = ScrollDirection.idle;
@@ -89,56 +94,98 @@ class ReviewState extends State<Review> {
                             _reviewList(),
                           ]))
                     : _emptyReviewIndicator())),
-        floatingActionButton: Observer(
-           builder: (_) {
-            return _fabState.showFab == true
-            ? FloatingActionButton(
-                child: Icon(
-                  Icons.add,
-                ),
-                onPressed: () {
-                  var bottomSheetController = showModalBottomSheet(
-                      // If your BottomSheetModel is Column make sure you add mainAxisSize: MainAxisSize.min, otherwise the sheet will cover the whole screen.
-                      isScrollControlled: true, // allow for keyboard
-                      context: context,
-                      builder: (BuildContext context) {
-                        return ReviewMod(
-                            _addReview, new ReviewModel(stars: 0, comment: ""));
-                      });
-                  bottomSheetController
-                      .whenComplete(() => null)
-                      .then((value) {});
-                },
-              )
-            : Container();}));
+        floatingActionButton: Observer(builder: (_) {
+          return _fabState.showFab == true
+              ? FloatingActionButton(
+                  child: Icon(
+                    Icons.add,
+                  ),
+                  onPressed: () {
+                    var bottomSheetController = showModalBottomSheet(
+                        // If your BottomSheetModel is Column make sure you add mainAxisSize: MainAxisSize.min, otherwise the sheet will cover the whole screen.
+                        isScrollControlled: true, // allow for keyboard
+                        context: context,
+                        builder: (BuildContext context) {
+                          return ReviewMod(_addReview,
+                              new ReviewModel(stars: 0, comment: ""));
+                        });
+                    bottomSheetController
+                        .whenComplete(() => null)
+                        .then((value) {});
+                  },
+                )
+              : Container();
+        }));
   }
 
   _reviewList() {
     return SliverPadding(
-        padding: const EdgeInsets.all(5.0),
+        padding: const EdgeInsets.only(left:5.0, top:0.0, right:5.0, bottom:0.0),
         sliver: SliverFixedExtentList(
-            itemExtent: 56.0,
+            itemExtent: 49.0,
             delegate:
                 SliverChildBuilderDelegate((BuildContext context, int index) {
               final thisReview = _reviewsStore.reviews[index];
+              DoubleState _double = new DoubleState();
               return WillPopScope(
                 // TODO: not sure what the effect of this is at present
                 onWillPop: () async =>
                     false, //prevents Android back button and outside tap from popping it
                 child: GestureDetector(
-                  child: Dismissible(
-                    key: Key(thisReview.uniqueKey),
-                    direction: DismissDirection.horizontal,
-                    child: ReviewWidget(
-                      reviewItem: thisReview,
+                  child: Column(children: <Widget>[
+                    Dismissible(
+                      key: Key(thisReview.uniqueKey),
+                      direction: DismissDirection.horizontal,
+                      child: Column(children: <Widget>[
+                        Stack(
+                            alignment: Alignment.center,
+                            children: <Widget>[
+                              Observer(
+                                  builder: (_) => AnimatedContainer(
+                                        duration: Duration(milliseconds: 300),
+                                        onEnd: () => {_double.value = 0.0},
+                                        width: _double.value,
+                                        height: 48,
+                                        color: Color.fromRGBO(0, 0, 0, .075),
+                                      )),
+                              ReviewWidget(
+                                reviewItem: thisReview,
+                              ),
+                            ])
+                      ]),
+                      onDismissed: (direction) {
+                        if (direction == DismissDirection.endToStart ||
+                            direction == DismissDirection.startToEnd) {
+                          _reviewsStore.removeReview(thisReview.uniqueKey);
+                        }
+                      },
                     ),
-                    onDismissed: (direction) {
-                      if (direction == DismissDirection.endToStart ||
-                          direction == DismissDirection.startToEnd) {
-                        _reviewsStore.removeReview(thisReview.uniqueKey);
-                      }
-                    },
-                  ),
+                    Divider(
+                      height: 1,
+                      color: Colors.grey,
+                    )
+                  ]),
+                  onTapDown: (x) {
+                    // Set a slight delay on tap down to avoid confusing it with the start of a drag horizontal or other user intention
+                    //print("onTapDown: " + new DateTime.now().millisecondsSinceEpoch.toString());
+                    Timer timer =
+                        new Timer(new Duration(milliseconds: 100), () {
+                      //print("onTapDownTimer: " + new DateTime.now().millisecondsSinceEpoch.toString());
+                      _double.value = MediaQuery.of(context).size.width;
+                    });
+                  },
+                  onTapUp: (x) {
+                    // Cancel the effects of the onTapDown, but on an onLongPress this cancellation won't occur which means we get to
+                    // do something that isn't present on a single tap
+                    //print("onTapUp: " + new DateTime.now().millisecondsSinceEpoch.toString());
+                    new Timer(new Duration(milliseconds: 101), () {
+                      //print("onTapUpTimer: " + new DateTime.now().millisecondsSinceEpoch.toString());
+                      _double.value = 0.0;
+                    });
+                  },
+                  onHorizontalDragStart: (x) {
+                    _double.value = 0.0;
+                  },
                   onLongPress: () {
                     // you can show an AlertDialog here with 3 options you need
                     var bottomSheetController = showModalBottomSheet(

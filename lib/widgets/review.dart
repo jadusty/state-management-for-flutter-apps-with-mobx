@@ -14,11 +14,12 @@ class ReviewWidget extends StatelessWidget {
         Padding(
           padding: EdgeInsets.all(10.0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               Expanded(
                 child: Text(
                   reviewItem.comment,
+                  //style: TextStyle(backgroundColor: Colors.yellow)
                 ),
               ),
               StarRating(
@@ -30,9 +31,6 @@ class ReviewWidget extends StatelessWidget {
                   })
             ],
           ),
-        ),
-        Divider(
-          color: Colors.grey,
         )
       ],
     );
